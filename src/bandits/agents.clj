@@ -43,7 +43,8 @@
       (->EpsilonGreedyAgent epsilon zeros zeros))))
 
 ; running an experiment
-(testbed/run-experiment 200 100 10)
+(def r (testbed/run-experiment 2000 1000 10))
+
 ;
 ; TODO:
 ;  Epsilon Greedy agent
