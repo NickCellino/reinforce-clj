@@ -1,8 +1,7 @@
 (ns bandits.agents
   (:require [clojure.core :refer :all])
   (:require [clojure.repl :refer :all])
-  (:require [bandits.bandits :as bandits])
-  (:require [bandits.testbed :as testbed]))
+  (:require [bandits.bandits :as bandits]))
 
 (defn argmax
   "Returns the index of the largest element in values."
@@ -41,9 +40,6 @@
       (or (> epsilon 1) (< epsilon 0))
       nil
       (->EpsilonGreedyAgent epsilon zeros zeros))))
-
-; running an experiment
-(def r (testbed/run-experiment 2000 1000 10))
 
 ;
 ; TODO:
