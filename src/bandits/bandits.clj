@@ -1,4 +1,4 @@
-(ns bandits
+(ns bandits.bandits
   (:require [clojure.core :refer :all])
   (:require [clojure.repl :refer :all])
   (:require [kixi.stats.distribution :refer [normal sample]]))
@@ -6,6 +6,7 @@
 (defn create-bandit
   [arms]
   (vec (sample arms (normal {:location 0 :scale 1}))))
+(def n-armed-bandit create-bandit)
 
 (defn pull-arm
   [bandit arm]
