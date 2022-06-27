@@ -6,7 +6,7 @@
 
 (defn save-to-file
   [results filename]
-  (spit filename (prn-str r)))
+  (spit filename (prn-str results)))
 
 (defn read-from-file
   [filename]
