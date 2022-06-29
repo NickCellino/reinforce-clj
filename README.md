@@ -5,5 +5,5 @@
 To run the bandits experiment, do:
 
 ```
-clj -X bandits.experiments/run1
+clj -X bandits.experiments/run1 > out.edn
 ```
