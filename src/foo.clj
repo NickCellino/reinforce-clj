@@ -48,8 +48,7 @@
 (def data (test/read-from-file "results-200-100.edn"))
 ((nth data 0) :step-rewards)
 
-(defn
-  mean
+(defn mean
   [& args]
   (/ (apply + args) (count args)))
 

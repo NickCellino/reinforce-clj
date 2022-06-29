@@ -1,7 +1,8 @@
 (ns bandits.testbed
   (:require [clojure.core :refer :all])
   (:require [bandits.agents :as agents])
-  (:require [bandits.bandits :as bandits]))
+  (:require [bandits.bandits :as bandits])
+  (:require [stats]))
 
 (defn perform-run
   "Performs a run for the given agent and bandit with the specified number of steps."
@@ -31,4 +32,15 @@
           (cons run-result-w-bandit runs-data)))
       []
       (range runs))))
+
+(defn summarize-results
+  "Summarize result to a vector of { :value 0 :step 1 }"
+  [results]
+  (let [indexed-avgs (->> (map :step-rewards results)
+                          (apply map stats/mean)
+                          (reverse)
+                          (map-indexed vector))]
+    (map #(assoc {}
+           :value (get % 1)
+           :step (inc (get % 0))) indexed-avgs)))
 
