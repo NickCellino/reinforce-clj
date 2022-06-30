@@ -1,5 +1,5 @@
 (ns foo
-  (:require [clojure.repl :refer :all])
+  (:require [clojure.repl :refer])
   (:require [oz.core :as oz])
   (:require [bandits.test :as test]))
 
@@ -9,6 +9,8 @@
   (for [n names
         i (range 20)]
     {:time i :item n :quantity (+ (Math/pow (* i (count n)) 0.8) (rand-int (count n)))}))
+
+(play-data)
 
 (def line-plot
   {:data {:values (play-data "monkey" "slipper" "broom")}
@@ -37,10 +39,10 @@
 
 (def new-stacked-bar
   (assoc-in stacked-bar [:data :values]
-   (seq (let 
-    [values (vec (get-in stacked-bar [:data :values]))
-     first (get values 1)]
-    (assoc values 1 (assoc first :quantity 100))))))
+            (seq (let
+                  [values (vec (get-in stacked-bar [:data :values]))
+                   first (get values 1)]
+                   (assoc values 1 (assoc first :quantity 100))))))
 
 (oz/view! stacked-bar)
 (oz/view! new-stacked-bar)
