@@ -22,16 +22,18 @@
 ; { :bandit {}, :agent {}, :step-rewards [] :choices [] }
 ; end result should be a seq of 2000 of those
 (defn run-experiment
-  [runs steps num-arms]
-  (let [agent (agents/epsilon-greedy-agent 0 num-arms)]
-    (reduce
-      (fn [runs-data _]
-        (let [bandit (bandits/n-armed-bandit num-arms)
-              run-result (perform-run agent bandit steps)
-              run-result-w-bandit (merge run-result {:bandit bandit})]
-          (cons run-result-w-bandit runs-data)))
-      []
-      (range runs))))
+  ([runs steps num-arms agent]
+   (reduce
+     (fn [runs-data _]
+       (let [bandit (bandits/n-armed-bandit num-arms)
+             run-result (perform-run agent bandit steps)
+             run-result-w-bandit (merge run-result {:bandit bandit})]
+         (cons run-result-w-bandit runs-data)))
+     []
+     (range runs)))
+  ([runs steps num-arms]
+   (let [agent (agents/epsilon-greedy-agent 0 num-arms)]
+     (run-experiment runs steps num-arms agent))))
 
 (defn summarize-results
   "Summarize result to a vector of { :value 0 :step 1 }"

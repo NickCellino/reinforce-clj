@@ -21,7 +21,7 @@
                             (> step 250) 1
                             :else 0)))
         row-mapping (fn [row] (assoc row :color (color-mapping row)))]
-  (map row-mapping results)))
+   (map row-mapping results)))
 
 (defn vis1
   [{in :in :or {in "out.edn"}}]

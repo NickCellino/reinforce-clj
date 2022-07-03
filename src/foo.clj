@@ -1,7 +1,7 @@
 (ns foo
-  (:require [clojure.repl :refer])
-  (:require [oz.core :as oz])
-  (:require [bandits.test :as test]))
+  (:require
+    [clojure.repl :refer :all]
+    [oz.core :as oz]))
 
 (oz/start-server!)
 
@@ -9,8 +9,6 @@
   (for [n names
         i (range 20)]
     {:time i :item n :quantity (+ (Math/pow (* i (count n)) 0.8) (rand-int (count n)))}))
-
-(play-data)
 
 (def line-plot
   {:data {:values (play-data "monkey" "slipper" "broom")}
@@ -42,20 +40,16 @@
             (seq (let
                   [values (vec (get-in stacked-bar [:data :values]))
                    first (get values 1)]
-                   (assoc values 1 (assoc first :quantity 100))))))
+                  (assoc values 1 (assoc first :quantity 100))))))
 
 (oz/view! stacked-bar)
 (oz/view! new-stacked-bar)
 
-(def data (test/read-from-file "results-200-100.edn"))
 ((nth data 0) :step-rewards)
 
 (defn mean
   [& args]
   (/ (apply + args) (count args)))
-
-(map-indexed vector [1 2 3])
-(reverse '(1 2 3))
 
 (def avgs
   (map #(assoc {} :value (get % 1) :step (+ (get % 0) 1))
@@ -68,5 +62,4 @@
    :mark "line"})
 
 (oz/view! avg-plot)
-
 
