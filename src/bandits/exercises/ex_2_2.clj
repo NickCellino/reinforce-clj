@@ -6,7 +6,7 @@
 
 (defn run-exp
   [agents chart-title]
-  (let [results (testbed/run-testbed agents 10 2000 1000)
+  (let [results (testbed/run-testbed agents 10 200 100)
         labels (map agents/get-plot-label agents)
         labeled-results (vis/label results labels)]
     (vis/plot-lines labeled-results ["step" "value"] {:title chart-title})))
