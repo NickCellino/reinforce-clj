@@ -1,4 +1,4 @@
-(ns stats)
+(ns reinforce-lib.stats)
 
 (defn mean
   [& args]

@@ -1,48 +1,39 @@
 (ns bandits.testbed
-  (:require [clojure.core :refer :all])
-  (:require [bandits.agents :as agents])
-  (:require [bandits.bandits :as bandits])
-  (:require [stats]))
-
-(defn perform-run
-  "Performs a run for the given agent and bandit with the specified number of steps."
-  [agent bandit steps]
-  (reduce
-    (fn [run-data _]
-      (let [agent (:agent run-data)
-            chosen-arm (agents/choose-arm agent)
-            reward (bandits/pull-arm bandit chosen-arm)
-            updated-agent (agents/update-agent agent chosen-arm reward)
-            step-result {:choices chosen-arm :step-rewards reward}]
-        (assoc (merge-with cons step-result run-data) :agent updated-agent)))
-    {:agent agent :choices [] :step-rewards []}
-    (range steps)))
-
-; for each run, return 
-; { :bandit {}, :agent {}, :step-rewards [] :choices [] }
-; end result should be a seq of 2000 of those
-(defn run-experiment
-  ([runs steps num-arms agent]
-   (reduce
-     (fn [runs-data _]
-       (let [bandit (bandits/n-armed-bandit num-arms)
-             run-result (perform-run agent bandit steps)
-             run-result-w-bandit (merge run-result {:bandit bandit})]
-         (cons run-result-w-bandit runs-data)))
-     []
-     (range runs)))
-  ([runs steps num-arms]
-   (let [agent (agents/epsilon-greedy-agent 0 num-arms)]
-     (run-experiment runs steps num-arms agent))))
+  (:require 
+    [bandits.agents :as agents]
+    [bandits.bandits :as bandits]
+    [reinforce-lib.stats :as rls]))
 
 (defn summarize-results
   "Summarize result to a vector of { :value 0 :step 1 }"
   [results]
-  (let [indexed-avgs (->> (map :step-rewards results)
-                          (apply map stats/mean)
-                          (reverse)
+  (let [indexed-avgs (->> results
+                          (apply map rls/mean)
                           (map-indexed vector))]
     (map #(assoc {}
            :value (get % 1)
-           :step (inc (get % 0))) indexed-avgs)))
+           :step (get % 0)) indexed-avgs)))
 
+(defn perform-trial
+  [agent bandit pulls]
+  (loop [pull 0
+         rewards []
+         agent agent]
+    (if (> pull pulls)
+      rewards
+      (let [chosen-arm (agents/choose-arm agent)
+            reward (bandits/pull-arm bandit chosen-arm)
+            new-agent (agents/update-agent agent chosen-arm reward)]
+        (recur (inc pull) (conj rewards reward) new-agent)))))
+
+(defn perform-trials
+  [agent bandit trials pulls]
+  (pmap (fn [_] (perform-trial agent bandit pulls)) (range trials)))
+
+(defn run-testbed
+  [agents arms trials pulls]
+  (let [bandit (bandits/n-armed-bandit arms)
+        results-vec-by-agent (pmap #(perform-trials % bandit trials pulls) agents)
+        avgd-results-vec-by-agent (pmap summarize-results results-vec-by-agent)]
+    avgd-results-vec-by-agent))
+  
