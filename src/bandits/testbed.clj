@@ -7,9 +7,9 @@
 
 (defn summarize-results
   "Summarize result to a vector of { :value 0 :step 1 }"
-  [results]
+  [func results]
   (let [indexed-avgs (->> results
-                          (apply map rls/mean)
+                          (apply map func)
                           (map-indexed vector))]
     (map #(assoc {}
            :value (get % 1)
@@ -44,14 +44,21 @@
   [results]
   (map #(map :optimal %) results))
 
+(defn fraction-true
+  [& vals]
+  (float (/ (count (filter identity vals)) (count vals)))
+
+(defn summarize-optimal-choices
+  [optimal-choices]
+  (map-indexed (fn [idx p] {:percentage p :step idx}) (apply map fraction-true optimal-choices)))
+
 (defn run-testbed
   [agents arms trials pulls]
   (let [bandit (bandits/n-armed-bandit arms)
         results-vec-by-agent (pmap #(perform-trials % bandit trials pulls) agents)
         rewards-vec-by-agent (map extract-rewards results-vec-by-agent)
         optimal-choice-vec-by-agent (map extract-optimal results-vec-by-agent)
-        avgd-results-vec-by-agent (pmap summarize-results rewards-vec-by-agent)] 
-    avgd-results-vec-by-agent))
-
-; TODO summarize the optimal choices per agent
+        optimal-percentage-by-agent (map summarize-optimal-choices optimal-choice-vec-by-agent)
+        avgd-results-vec-by-agent (pmap (partial summarize-results rls/mean) rewards-vec-by-agent)] 
+    {:rewards avgd-results-vec-by-agent :optimal-choices optimal-percentage-by-agent}))
   

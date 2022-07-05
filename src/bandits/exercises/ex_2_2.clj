@@ -6,10 +6,13 @@
 
 (defn run-exp
   [agents chart-title]
-  (let [results (testbed/run-testbed agents 10 200 100)
+  (let [results (testbed/run-testbed agents 10 2000 1000)
         labels (map agents/get-plot-label agents)
-        labeled-results (vis/label results labels)]
-    (vis/plot-lines labeled-results ["step" "value"] {:title chart-title})))
+        labeled-results (vis/label (:rewards results) labels)
+        labeled-optimal-choice-results (vis/label (:optimal-choices results) labels)]
+    (println labeled-optimal-choice-results)
+    (vis/plot-lines labeled-optimal-choice-results ["step" "percentage"] {:title "Optimal choices"})
+    (comment (vis/plot-lines labeled-results ["step" "value"] {:title chart-title}))))
 
 (comment
   "Running experiment 2.2"
