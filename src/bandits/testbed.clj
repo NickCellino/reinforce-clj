@@ -19,8 +19,9 @@
   "Performs a single trial with the specified pulls.
   
   Returns a sequence of {:reward 0.3 :optimal false|true}"
-  [agent bandit pulls]
-  (let [optimal-choice (argmax bandit)]
+  [agent arms pulls]
+  (let [bandit (bandits/n-armed-bandit arms)
+        optimal-choice (argmax bandit)]
     (loop [pull 0
            results []
            agent agent]
@@ -33,8 +34,8 @@
           (recur (inc pull) (conj results {:reward reward :optimal was-optimal}) new-agent))))))
 
 (defn perform-trials
-  [agent bandit trials pulls]
-  (pmap (fn [_] (perform-trial agent bandit pulls)) (range trials)))
+  [agent arms trials pulls]
+  (pmap (fn [_] (perform-trial agent arms pulls)) (range trials)))
 
 (defn extract-rewards
   [results]
@@ -46,7 +47,7 @@
 
 (defn fraction-true
   [& vals]
-  (float (/ (count (filter identity vals)) (count vals)))
+  (float (/ (count (filter identity vals)) (count vals))))
 
 (defn summarize-optimal-choices
   [optimal-choices]
@@ -54,8 +55,7 @@
 
 (defn run-testbed
   [agents arms trials pulls]
-  (let [bandit (bandits/n-armed-bandit arms)
-        results-vec-by-agent (pmap #(perform-trials % bandit trials pulls) agents)
+  (let [results-vec-by-agent (pmap #(perform-trials % arms trials pulls) agents)
         rewards-vec-by-agent (map extract-rewards results-vec-by-agent)
         optimal-choice-vec-by-agent (map extract-optimal results-vec-by-agent)
         optimal-percentage-by-agent (map summarize-optimal-choices optimal-choice-vec-by-agent)

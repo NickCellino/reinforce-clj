@@ -12,10 +12,10 @@
         labeled-optimal-choice-results (vis/label (:optimal-choices results) labels)]
     (println labeled-optimal-choice-results)
     (vis/plot-lines labeled-optimal-choice-results ["step" "percentage"] {:title "Optimal choices"})
-    (comment (vis/plot-lines labeled-results ["step" "value"] {:title chart-title}))))
+    (vis/plot-lines labeled-results ["step" "value"] {:title chart-title})))
 
 (comment
   "Running experiment 2.2"
-  (let [agents (map #(agents/epsilon-greedy-agent % 10) [0 0.01 0.05 0.1])]
+  (let [agents (map #(agents/epsilon-greedy-agent % 10) [0 0.01 0.1])]
     (run-exp agents "Epsilon greedy agents")))
   
