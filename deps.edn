@@ -13,4 +13,7 @@
      :exec-args {:name "repl-server"
                  :port 5555
                  :accept clojure.core.server/repl
-                 :server-daemon false}}}}
+                 :server-daemon false}}
+  :test {:main-opts ["-m" "kaocha.runner"]
+         :extra-deps {lambdaisland/kaocha {:mvn/version "1.68.1059"}}}}}
+

@@ -15,6 +15,7 @@
       (rls/argmax (:value-estimates agent))))
   (update-agent
     [agent arm reward]
+    (println "updating agent" agent "arm" arm "reward" reward)
     (let [n (+ 1 (nth pulls-per-arm arm))
           alpha (/ 1 n)
           old-value-estimate (get (:value-estimates agent) arm)
