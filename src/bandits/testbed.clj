@@ -37,13 +37,9 @@
   [agent arms trials pulls]
   (pmap (fn [_] (perform-trial agent arms pulls)) (range trials)))
 
-(defn extract-rewards
-  [results]
-  (map #(map :reward %) results))
-
-(defn extract-optimal
-  [results]
-  (map #(map :optimal %) results))
+(defn extract-nested
+  [results kw]
+  (map #(map kw %) results))
 
 (defn fraction-true
   [& vals]
@@ -56,8 +52,8 @@
 (defn run-testbed
   [agents arms trials pulls]
   (let [results-vec-by-agent (pmap #(perform-trials % arms trials pulls) agents)
-        rewards-vec-by-agent (map extract-rewards results-vec-by-agent)
-        optimal-choice-vec-by-agent (map extract-optimal results-vec-by-agent)
+        rewards-vec-by-agent (map #(extract-nested % :reward) results-vec-by-agent)
+        optimal-choice-vec-by-agent (map #(extract-nested % :optimal) results-vec-by-agent)
         optimal-percentage-by-agent (map summarize-optimal-choices optimal-choice-vec-by-agent)
         avgd-results-vec-by-agent (pmap (partial summarize-results rls/mean) rewards-vec-by-agent)] 
     {:rewards avgd-results-vec-by-agent :optimal-choices optimal-percentage-by-agent}))
