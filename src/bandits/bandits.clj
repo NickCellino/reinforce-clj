@@ -9,4 +9,3 @@
   [bandit arm]
   (let [mean (get bandit arm)]
     (nth (sample 1 (normal {:location mean :scale 1})) 0)))
-

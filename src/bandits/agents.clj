@@ -1,37 +1,49 @@
 (ns bandits.agents
-  (:require [reinforce-lib.seq :as rls]))
+  (:require
+   [reinforce-lib.seq :refer [argmax]]))
 
-(defprotocol BanditAgent
-  (choose-arm [agent] "Choose which arm to pull")
-  (update-agent [agent arm result] "Return an bandit updated with the most recent result"))
+(defmulti choose-arm :agent-type)
+(defmulti get-plot-label :agent-type)
 
-(defrecord EpsilonGreedyAgent [epsilon pulls-per-arm value-estimates]
-  BanditAgent
-  (choose-arm
-    [agent]
-    (if
-      (< (rand) (:epsilon agent))
-      (rand-int (count (:value-estimates agent)))
-      (rls/argmax (:value-estimates agent))))
-  (update-agent
-    [agent arm reward]
-    (println "updating agent" agent "arm" arm "reward" reward)
-    (let [n (+ 1 (nth pulls-per-arm arm))
-          alpha (/ 1 n)
-          old-value-estimate (get (:value-estimates agent) arm)
-          error (- reward old-value-estimate)
-          new-value-estimate (+ old-value-estimate (* alpha error))
-          agent-with-updated-n (update-in agent [:pulls-per-arm arm] (partial + 1))]
-      (assoc-in agent-with-updated-n [:value-estimates arm] new-value-estimate))))
+(defn add-observation
+  "Add an observation to an agent."
+  [agent arm reward]
+  (let [n (inc (get (:pulls-per-arm agent) arm))
+        alpha (/ 1 n)
+        old-value-estimate (get (:value-estimates agent) arm)
+        error (- reward old-value-estimate)]
+    (-> agent
+        (assoc-in [:pulls-per-arm arm] n)
+        (update-in [:value-estimates arm] (partial + (* alpha error))))))
 
+; Epsilon greedy agents
 (defn epsilon-greedy-agent
   [epsilon num-arms]
-  (let [zeros (vec (repeat num-arms 0))]
-    (if
-      (or (> epsilon 1) (< epsilon 0))
-      nil
-      (->EpsilonGreedyAgent epsilon zeros zeros))))
+  (if
+    (or (> epsilon 1) (< epsilon 0))
+    nil
+    (let [zeros (vec (repeat num-arms 0))]
+      {:agent-type :epsilon-greedy :epsilon epsilon :pulls-per-arm zeros :value-estimates zeros})))
 
-(defmulti get-plot-label class)
-(defmethod get-plot-label EpsilonGreedyAgent [a] (str "Epsilon greedy (ε=" (:epsilon a) ")"))
+(defmethod choose-arm :epsilon-greedy
+  [agent]
+  (if
+    (< (rand) (:epsilon agent))
+    (rand-int (count (:value-estimates agent)))
+    (argmax (:value-estimates agent))))
 
+(defmethod get-plot-label :epsilon-greedy [a] (str "Epsilon greedy (ε=" (:epsilon a) ")"))
+
+(comment
+  (do
+    (require '[portal.api :as p])
+    (p/open)
+    (add-tap #'p/submit)
+
+    (def test (epsilon-greedy-agent 0.3 4))
+    (-> test
+        (add-observation 2 12.2)
+        (add-observation 2 4)
+        (add-observation 3 6)
+        (add-observation 3 7)
+        (add-observation 3 6))))

@@ -4,9 +4,10 @@
  :aliases
  {:repl/conjure
     {:extra-deps {nrepl/nrepl {:mvn/version "0.9.0"}
-                  cider/cider-nrepl {:mvn/version "0.28.4"}}
+                  cider/cider-nrepl {:mvn/version "0.28.4"}
+                  djblue/portal {:mvn/version "0.28.0"}}
      :main-opts ["-m" "nrepl.cmdline"
-                 "--middleware" "[cider.nrepl/cider-middleware]"
+                 "--middleware" "[cider.nrepl/cider-middleware,portal.nrepl/wrap-portal]"
                  "--interactive"]}
   :repl-server
     {:exec-fn clojure.core.server/start-server
