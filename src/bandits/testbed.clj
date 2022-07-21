@@ -42,9 +42,7 @@
 
   Returns a vector of 'pulls-per-trial' length where each
   element represents the mean of the rewards the agent obtained
-  at that step across all the trials.
-
-  TODO: also return the percentage optimal choices"
+  at that step across all the trials."
   [num-arms trials pulls-per-trial agent]
   (let [trial-fn (fn [] (do-trial agent (n-armed-bandit num-arms) pulls-per-trial))
         run-results (apply pcalls (repeat trials trial-fn))
