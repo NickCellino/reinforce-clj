@@ -13,8 +13,19 @@
         old-value-estimate (get (:value-estimates agent) arm)
         error (- reward old-value-estimate)]
     (-> agent
-        (assoc-in [:pulls-per-arm arm] n)
+        (update-in [:pulls-per-arm arm] inc)
         (update-in [:value-estimates arm] (partial + (* alpha error))))))
+
+(comment
+  (do
+    (def test-agent {:pulls-per-arm [0 0 0]
+                     :value-estimates [0 0 0]})
+    (-> {:pulls-per-arm [0 0 0]
+         :value-estimates [0 0 0]}
+        (add-observation 0 3)
+        (add-observation 0 4)
+        (add-observation 0 6))))
+; {:pulls-per-arm [3 0 0], :value-estimates [13/3 0 0]}
 
 ; Epsilon greedy agents
 (defn epsilon-greedy-agent
@@ -40,10 +51,21 @@
     (p/open)
     (add-tap #'p/submit)
 
-    (def test (epsilon-greedy-agent 0.3 4))
+    (def my-agent (epsilon-greedy-agent 0.3 10))
+    my-agent
+; {:agent-type :epsilon-greedy,
+;  :epsilon 0.3,
+;  :pulls-per-arm [0 0 0 0 0 0 0 0 0 0],
+;  :value-estimates [0 0 0 0 0 0 0 0 0 0]}
     (-> test
         (add-observation 2 12.2)
         (add-observation 2 4)
         (add-observation 3 6)
         (add-observation 3 7)
-        (add-observation 3 6))))
+        (add-observation 3 6))
+
+    (choose-arm my-agent)
+
+    (take 10 (repeatedly #(choose-arm {:agent-type :epsilon-greedy
+                                       :epsilon 0.5
+                                       :value-estimates [0.75 0 0 0 0 0 0]}))))) ; (0 1 0 0 4 6 0 0 0 2)
