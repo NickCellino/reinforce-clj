@@ -22,7 +22,7 @@
 
 (defn exp-2-2
   "Running experiment 2.2"
-  []
+  [& opts]
   (let [agents (map #(agents/epsilon-greedy-agent % 10) [0 0.01 0.1])]
     (run-exp-v2 agents)))
 
