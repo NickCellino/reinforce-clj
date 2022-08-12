@@ -4,17 +4,7 @@
 
 (defmulti choose-arm :agent-type)
 (defmulti get-plot-label :agent-type)
-
-(defn add-observation
-  "Add an observation to an agent."
-  [agent arm reward]
-  (let [n (inc (get (:pulls-per-arm agent) arm))
-        alpha (/ 1 n)
-        old-value-estimate (get (:value-estimates agent) arm)
-        error (- reward old-value-estimate)]
-    (-> agent
-        (update-in [:pulls-per-arm arm] inc)
-        (update-in [:value-estimates arm] (partial + (* alpha error))))))
+(defmulti add-observation (fn [agent & _] (:agent-type agent)))
 
 (comment
   (do
@@ -43,9 +33,61 @@
     (rand-int (count (:value-estimates agent)))
     (argmax (:value-estimates agent))))
 
+(defn update-arm-estimates
+  "Update the agents value estimate for the specified arm."
+  [agent arm reward]
+  (let [n (inc (get (:pulls-per-arm agent) arm))
+          alpha (/ 1 n)
+          old-value-estimate (get (:value-estimates agent) arm)
+          error (- reward old-value-estimate)]
+      (-> agent
+          (update-in [:pulls-per-arm arm] inc)
+          (update-in [:value-estimates arm] (partial + (* alpha error))))))
+
+
+(defmethod add-observation :epsilon-greedy
+  [agent arm reward]
+  (update-arm-estimates agent arm reward))
+
 (defmethod get-plot-label :epsilon-greedy [a] (str "Epsilon greedy (ε=" (:epsilon a) ")"))
 
+(defn smarter-epsilon-greedy-agent
+  "This is a smarter epsilon greedy agent.
+   He knows how long the trial is and he does
+   all of his exploring at the beginning."
+   [epsilon num-arms num-pulls]
+   (let [zeros (vec (repeat num-arms 0))]
+     {:agent-type :smarter-epsilon-greedy
+      :epsilon epsilon
+      :exploratory-pulls (int (* epsilon num-pulls))
+      :pulls-per-arm zeros
+      :value-estimates zeros}))
+
+(defmethod choose-arm :smarter-epsilon-greedy
+  [agent]
+  (if
+    (> (:exploratory-pulls agent) 0)
+    (rand-int (count (:value-estimates agent)))
+    (argmax (:value-estimates agent))))
+
+(defmethod add-observation :smarter-epsilon-greedy
+  [agent arm reward]
+  (-> agent
+      (update-arm-estimates arm reward)
+      (update-in [:exploratory-pulls] dec)))
+
+(defmethod get-plot-label :smarter-epsilon-greedy [a] (str "Smart epsilon greedy (ε=" (:epsilon a) ")"))
+
 (comment
+
+  (def nine (fn [] 99))
+  (def ten nine)
+  (def ten #'nine)
+  (ten)
+
+  (require '[clojure.repl :refer :all])
+  (doc var)
+
   (do
     (require '[portal.api :as p])
     (p/open)
@@ -64,7 +106,9 @@
         (add-observation 3 7)
         (add-observation 3 6))
 
-    (choose-arm my-agent)
+    (def smart-agent (smarter-epsilon-greedy-agent 0.3 10 100))
+    (choose-arm smart-agent) ; random
+    (choose-arm (assoc smart-agent :exploratory-pulls 0)) ; 9
 
     (take 10 (repeatedly #(choose-arm {:agent-type :epsilon-greedy
                                        :epsilon 0.5
